@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Wajibox - Bilingual School Practice Platform" />
+  <title>Wajibox | School Workspace</title>
+  <link rel="icon" type="image/jpeg" href="images/wajib.jpg" />
+  <link rel="apple-touch-icon" href="images/wajib.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Wajibox Home">
+        <img class="brand-logo" src="images/wajib.jpg" alt="Wajibox" />
+        <span id="brand-name">Wajibox</span>
+      </a>
+      <div class="topbar-actions">
+        <span class="student-chip" id="user-chip">Student</span>
+        <button class="language-button" id="language-toggle" type="button">العربية</button>
+        <div class="role-switcher" id="role-switcher" aria-label="Choose app mode" role="group">
+          <button class="role-button active" data-role="student" type="button" aria-pressed="true">Student</button>
+          <button class="role-button" data-role="teacher" type="button" aria-pressed="false">Teacher</button>
+        </div>
+      </div>
+    </header>
+
+    <main id="app" class="page-content"></main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
