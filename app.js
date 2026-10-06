@@ -30,6 +30,12 @@ let quizAnswers = [];
 let studentName = localStorage.getItem(STUDENT_KEY) || "";
 let teacherName = localStorage.getItem(TEACHER_KEY) || "";
 let teacherCode = getOrCreateTeacherCode();
+if (teacherName) {
+  const activeTeacherCodeKey = getTeacherCodeKey(teacherName);
+  if (!normalizeClassCode(localStorage.getItem(activeTeacherCodeKey))) {
+    localStorage.setItem(activeTeacherCodeKey, teacherCode);
+  }
+}
 let studentClassCode = normalizeClassCode(localStorage.getItem(STUDENT_CLASS_CODE_KEY) || "");
 let studentFilter = "pending";
 let lastSubmission = null;
@@ -173,40 +179,30 @@ const DatabaseService = {
     return items;
   },
   async createHomework(newItem) {
-    const payload = mapHomeworkItem(newItem);
-
     try {
       if (supabaseClient) {
+        const payload = mapHomeworkItem(newItem);
         const { data, error } = await supabaseClient
           .from("homework")
           .insert([payload])
           .select();
 
-        if (!error && Array.isArray(data) && data[0]) {
-          const savedItem = mapHomeworkRow(data[0]);
-          const cached = readLocalHomework();
-          writeLocalHomework([
-            savedItem,
-            ...cached.filter((item) => item.id !== savedItem.id)
-          ]);
-          return savedItem;
-        }
-
         if (error) {
           console.error("Supabase insert error:", error);
-          showToast(error.message || "Unable to save homework.");
+          showToast(error.message);
+        } else if (Array.isArray(data) && data.length) {
+          const saved = mapHomeworkRow(data[0]);
+          const current = readLocalHomework();
+          writeLocalHomework([saved, ...current.filter((h) => h.id !== saved.id)]);
+          return saved;
         }
       }
     } catch (error) {
-      console.error("Supabase insert error:", error);
-      showToast(error.message || "Unable to save homework.");
+      console.error("Unable to reach Supabase to create homework.", error);
     }
 
     const cached = readLocalHomework();
-    writeLocalHomework([
-      newItem,
-      ...cached.filter((item) => item.id !== newItem.id)
-    ]);
+    writeLocalHomework([newItem, ...cached.filter((item) => item.id !== newItem.id)]);
     return newItem;
   },
   async getSubmissions() {
@@ -400,6 +396,14 @@ function getOrCreateTeacherCode() {
   const generatedCode = `WJB-${String(Math.floor(Math.random() * 1000)).padStart(3, "0")}`;
   localStorage.setItem(TEACHER_CODE_KEY, generatedCode);
   return generatedCode;
+}
+
+function getTeacherCodeKey(name) {
+  return `${TEACHER_CODE_KEY}_${String(name).trim().toLowerCase()}`;
+}
+
+function createTeacherCode() {
+  return `WJB-${String(Math.floor(Math.random() * 1000)).padStart(3, "0")}`;
 }
 
 function t(key, values = {}) {
@@ -985,17 +989,26 @@ async function renderTeacher() {
     renderTeacher();
   });
 
-  const saveTeacher = () => {
+  const saveTeacher = async () => {
     const val = document.querySelector("#teacher-name").value.trim();
     if (val) {
+      const codeKey = getTeacherCodeKey(val);
+      const storedCode = normalizeClassCode(localStorage.getItem(codeKey));
       teacherName = val;
       localStorage.setItem(TEACHER_KEY, teacherName);
-      render();
+      teacherCode = storedCode || createTeacherCode();
+      localStorage.setItem(codeKey, teacherCode);
+      const userChip = document.querySelector("#user-chip");
+      if (userChip) userChip.textContent = teacherName;
+      await renderTeacher();
     }
   };
   document.querySelector("#change-teacher").addEventListener("click", saveTeacher);
   document.querySelector("#teacher-name").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") saveTeacher();
+    if (e.key === "Enter") {
+      e.preventDefault();
+      saveTeacher();
+    }
   });
 
   document.querySelectorAll("[data-delete]").forEach((b) => {
