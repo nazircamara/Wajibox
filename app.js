@@ -1,5 +1,11 @@
 "use strict";
 
+const SUPABASE_URL = "https://toceezswxlzphzgsfefz.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_bB6c2MFILXX3bqpKTHdhOA_xnwBMdhc";
+const supabaseClient = window.supabase
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
 /**
  * Storage Keys & In-Memory State
  */
@@ -32,51 +38,224 @@ let currentPlaybackAudio = null;
 /**
  * Pluggable Database Service Layer (Supabase / Firebase / LocalStorage)
  */
+function readLocalHomework() {
+  try {
+    const data = localStorage.getItem(HOMEWORK_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error("Unable to read cached homework.", error);
+    return [];
+  }
+}
+
+function writeLocalHomework(items) {
+  try {
+    localStorage.setItem(HOMEWORK_KEY, JSON.stringify(items));
+  } catch (error) {
+    console.error("Unable to cache homework locally.", error);
+  }
+}
+
+function readLocalSubmissions() {
+  try {
+    const data = localStorage.getItem(SUBMISSIONS_KEY);
+    const parsed = data ? JSON.parse(data) : [];
+    return parsed
+      .map((item) => ({
+        ...item,
+        score: Number(item.score) || 0,
+        total: Number(item.total) || 0,
+        answers: Array.isArray(item.answers) ? item.answers.map(Number) : []
+      }))
+      .filter((item) => String(item.studentName || "").trim() && item.total > 0);
+  } catch (error) {
+    console.error("Unable to read cached submissions.", error);
+    return [];
+  }
+}
+
+function writeLocalSubmissions(items) {
+  try {
+    localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify(items));
+  } catch (error) {
+    console.error("Unable to cache submissions locally.", error);
+  }
+}
+
+function mapHomeworkRow(row) {
+  return {
+    ...row,
+    id: row.id,
+    dueDate: row.due_date ?? row.dueDate,
+    teacherName: row.teacher_name ?? row.teacherName,
+    classCode: row.class_code ?? row.classCode,
+    createdAt: row.created_at ?? row.createdAt,
+    questions: Array.isArray(row.questions) ? row.questions : []
+  };
+}
+
+function mapHomeworkItem(item) {
+  return {
+    id: item.id,
+    title: item.title,
+    subject: item.subject,
+    due_date: item.dueDate ?? item.due_date,
+    teacher_name: item.teacherName ?? item.teacher_name,
+    class_code: item.classCode ?? item.class_code,
+    created_at: item.createdAt ?? item.created_at,
+    questions: item.questions ?? []
+  };
+}
+
+function mapSubmissionRow(row) {
+  return {
+    ...row,
+    id: row.id,
+    homeworkId: row.homework_id ?? row.homeworkId,
+    studentName: row.student_name ?? row.studentName,
+    score: Number(row.score) || 0,
+    total: Number(row.total) || 0,
+    date: row.date,
+    answers: Array.isArray(row.answers) ? row.answers.map(Number) : []
+  };
+}
+
+function mapSubmissionItem(item) {
+  return {
+    id: item.id,
+    homework_id: item.homeworkId ?? item.homework_id,
+    student_name: item.studentName ?? item.student_name,
+    score: Number(item.score) || 0,
+    total: Number(item.total) || 0,
+    date: item.date,
+    answers: Array.isArray(item.answers) ? item.answers : []
+  };
+}
+
 const DatabaseService = {
   async getHomework() {
     try {
-      const data = localStorage.getItem(HOMEWORK_KEY);
-      return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient
+          .from("homework")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (!error && Array.isArray(data)) {
+          const items = data.map(mapHomeworkRow);
+          writeLocalHomework(items);
+          return items;
+        }
+        if (error) console.error("Unable to fetch homework from Supabase.", error);
+      }
+    } catch (error) {
+      console.error("Unable to reach Supabase for homework.", error);
     }
+    return readLocalHomework();
   },
   async saveHomework(items) {
-    localStorage.setItem(HOMEWORK_KEY, JSON.stringify(items));
+    try {
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient
+          .from("homework")
+          .upsert(items.map(mapHomeworkItem), { onConflict: "id" })
+          .select();
+        if (!error && Array.isArray(data)) {
+          const savedItems = data.map(mapHomeworkRow);
+          writeLocalHomework(savedItems);
+          return savedItems;
+        }
+        if (error) console.error("Unable to save homework to Supabase.", error);
+      }
+    } catch (error) {
+      console.error("Unable to reach Supabase for homework.", error);
+    }
+    writeLocalHomework(items);
     return items;
   },
   async getSubmissions() {
     try {
-      const data = localStorage.getItem(SUBMISSIONS_KEY);
-      const parsed = data ? JSON.parse(data) : [];
-      return parsed
-        .map((item) => ({
-          ...item,
-          score: Number(item.score) || 0,
-          total: Number(item.total) || 0,
-          answers: Array.isArray(item.answers) ? item.answers.map(Number) : []
-        }))
-        .filter((item) => String(item.studentName || "").trim() && item.total > 0);
-    } catch {
-      return [];
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient
+          .from("submissions")
+          .select("*")
+          .order("date", { ascending: false });
+        if (!error && Array.isArray(data)) {
+          const submissions = data.map(mapSubmissionRow)
+            .filter((item) => String(item.studentName || "").trim() && item.total > 0);
+          writeLocalSubmissions(submissions);
+          return submissions;
+        }
+        if (error) console.error("Unable to fetch submissions from Supabase.", error);
+      }
+    } catch (error) {
+      console.error("Unable to reach Supabase for submissions.", error);
     }
+    return readLocalSubmissions();
   },
   async addSubmission(submission) {
-    const subs = await this.getSubmissions();
+    try {
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient
+          .from("submissions")
+          .upsert([mapSubmissionItem(submission)], { onConflict: "id" })
+          .select()
+          .single();
+        if (!error && data) {
+          const savedSubmission = mapSubmissionRow(data);
+          const cached = readLocalSubmissions();
+          writeLocalSubmissions([
+            ...cached.filter((item) => item.id !== savedSubmission.id),
+            savedSubmission
+          ]);
+          return savedSubmission;
+        }
+        if (error) console.error("Unable to save submission to Supabase.", error);
+      }
+    } catch (error) {
+      console.error("Unable to reach Supabase for submissions.", error);
+    }
+    const subs = readLocalSubmissions();
     const updated = [
       ...subs.filter((s) => !(s.homeworkId === submission.homeworkId && s.studentName === submission.studentName)),
       submission
     ];
-    localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify(updated));
+    writeLocalSubmissions(updated);
     return submission;
   },
   async clearAllSubmissions() {
-    localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify([]));
+    try {
+      if (supabaseClient) {
+        const { error } = await supabaseClient.from("submissions").delete().neq("id", "");
+        if (error) console.error("Unable to clear submissions in Supabase.", error);
+        else {
+          writeLocalSubmissions([]);
+          return true;
+        }
+      }
+    } catch (error) {
+      console.error("Unable to reach Supabase to clear submissions.", error);
+    }
+    writeLocalSubmissions([]);
     return true;
   },
   async clearAllData() {
-    localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify([]));
-    localStorage.setItem(HOMEWORK_KEY, JSON.stringify([]));
+    try {
+      if (supabaseClient) {
+        const submissionsResult = await supabaseClient.from("submissions").delete().neq("id", "");
+        const homeworkResult = await supabaseClient.from("homework").delete().neq("id", "");
+        if (submissionsResult.error) console.error("Unable to clear Supabase submissions.", submissionsResult.error);
+        if (homeworkResult.error) console.error("Unable to clear Supabase homework.", homeworkResult.error);
+        if (!submissionsResult.error && !homeworkResult.error) {
+          writeLocalSubmissions([]);
+          writeLocalHomework([]);
+          return true;
+        }
+      }
+    } catch (error) {
+      console.error("Unable to reach Supabase to clear data.", error);
+    }
+    writeLocalSubmissions([]);
+    writeLocalHomework([]);
     return true;
   }
 };
@@ -156,7 +335,7 @@ const translations = {
     submissionComplete: "Submission complete", passedHeadline: "You passed. Nice work!", reviewHeadline: "Keep practicing. You are getting there.", feedbackFor: "Here is your feedback for {title}.", backHomework: "Back to homework", finalScore: "Final score", correctAnswers: "Correct answers", result: "Result", passed: "Passed", failed: "Failed", review: "Review", reviewAnswers: "Review your answers", passingScore: "Passing score", morePractice: "Needs practice", yourAnswer: "Your answer", correctAnswer: "Correct answer", correctMessage: "Correct! Keep up the great work.", wrongMessage: "The correct choice was {answer}.",
     resultsWorkspace: "Teacher workspace / results", dueLabel: "Due {date}", tracker: "Submission tracker", received: "{n} submissions received", classAverage: "{n}% class average", noStudent: "No student submissions yet", shareAssignment: "Share the assignment with your class.", student: "Student", submittedAt: "Submitted {date}", studentReview: "Student review", close: "Close", correct: "Correct",
     teacherName: "Teacher name", teacherPlaceholder: "Enter teacher name", switchTeacher: "Save name", teacherWelcome: "Welcome, {name}.", clearSubmissions: "Clear submissions", confirmClearSubmissions: "Clear all assignments and student submissions? This cannot be undone.", dashboardClearedToast: "All assignments and submissions cleared.", publishedToast: "Assignment published!", deletedToast: "Assignment deleted.", deleteConfirm: "Delete {title}?", completeDetails: "Please fill in title, subject, and due date.", questionBlank: "Add text to every question.", optionsMissing: "Fill all 4 answer options.", correctMissing: "Select the correct radio choice.",
-    recordQuestionAudio: "Record Question", recordOptionAudio: "Record Audio", recordingState: "Recording...", stopRecordingState: "Stop", audioRecorded: "Voice recorded", playAudio: "Listen", readAloud: "Read Aloud", deleteAudio: "Remove Voice"
+    recordQuestionAudio: "Record Question", recordOptionAudio: "Record Audio", recordingState: "Recording...", stopRecordingState: "Stop", audioRecorded: "Voice recorded", playAudio: "Listen", readAloud: "Read Aloud", deleteAudio: "Remove Voice", micPermissionDenied: "Microphone permission is required to record voice audio.", renderError: "This view could not be loaded.", refreshPage: "Please refresh the page and try again."
   },
   ar: {
     brand: "واجيبوكس", studentMode: "الطالب", teacherMode: "المعلم", arabic: "العربية", english: "English",
@@ -168,7 +347,7 @@ const translations = {
     submissionComplete: "اكتمل التسليم", passedHeadline: "مبروك! لقد اجتزت الاختبار بنجاح.", reviewHeadline: "واصل التدريب، ستحقق نتيجة أفضل قريباً.", feedbackFor: "إليك نتائجك في {title}.", backHomework: "العودة للواجبات", finalScore: "الدرجة النهائية", correctAnswers: "الإجابات الصحيحة", result: "النتيجة", passed: "ناجح", failed: "راسب", review: "مراجعة", reviewAnswers: "راجع إجاباتك", passingScore: "درجة النجاح", morePractice: "بحاجة لتدريب", yourAnswer: "إجابتك", correctAnswer: "الإجابة الصحيحة", correctMessage: "إجابة صحيحة وممتازة!", wrongMessage: "الإجابة الصحيحة هي {answer}.",
     resultsWorkspace: "مساحة المعلم / النتائج", dueLabel: "التسليم {date}", tracker: "متابعة التسليمات", received: "تم استلام {n} تسليمات", classAverage: "متوسط الصف {n}%", noStudent: "لا توجد تسليمات بعد", shareAssignment: "شارك الواجب مع طلابك لبدء جمع الإجابات.", student: "الطالب", submittedAt: "أُرسل {date}", studentReview: "مراجعة إجابات الطالب", close: "إغلاق", correct: "صحيح",
     teacherName: "اسم المعلم", teacherPlaceholder: "أدخل اسم المعلم", switchTeacher: "حفظ الاسم", teacherWelcome: "مرحباً، {name}.", clearSubmissions: "مسح التسليمات", confirmClearSubmissions: "هل تريد مسح جميع الواجبات وتسليمات الطلاب؟ لا يمكن التراجع عن هذا الإجراء.", dashboardClearedToast: "تم مسح جميع الواجبات والتسليمات بنجاح.", publishedToast: "تم نشر الواجب بنجاح!", deletedToast: "تم حذف الواجب.", deleteConfirm: "هل أنت متأكد من حذف {title}؟", completeDetails: "يرجى ملء العنوان والمادة وتاريخ التسليم.", questionBlank: "يرجى كتابة نص لكل سؤال.", optionsMissing: "يرجى ملء خيارات الإجابة الأربعة.", correctMissing: "يرجى اختيار الإجابة الصحيحة.",
-    recordQuestionAudio: "تسجيل صوتي للسؤال", recordOptionAudio: "تسجيل صوتي", recordingState: "جارٍ التسجيل...", stopRecordingState: "إيقاف", audioRecorded: "تم التسجيل", playAudio: "استمع", readAloud: "قراءة آلية", deleteAudio: "حذف الصوت"
+    recordQuestionAudio: "تسجيل صوتي للسؤال", recordOptionAudio: "تسجيل صوتي", recordingState: "جارٍ التسجيل...", stopRecordingState: "إيقاف", audioRecorded: "تم التسجيل", playAudio: "استمع", readAloud: "قراءة آلية", deleteAudio: "حذف الصوت", micPermissionDenied: "يرجى منح إذن استخدام الميكروفون لتسجيل الصوت.", renderError: "تعذر تحميل هذه الصفحة.", refreshPage: "يرجى تحديث الصفحة والمحاولة مرة أخرى."
   }
 };
 
@@ -231,10 +410,15 @@ function getAverageScore(submissions) {
 }
 
 async function initializeDefaultData() {
-  const current = await DatabaseService.getHomework();
-  const withoutSeed = current.filter((item) => item.id !== "science-seed");
-  if (withoutSeed.length !== current.length) {
-    await DatabaseService.saveHomework(withoutSeed);
+  // Clean up legacy localStorage seed if present
+  try {
+    const raw = localStorage.getItem(HOMEWORK_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw).filter((item) => item.id !== "science-seed");
+      localStorage.setItem(HOMEWORK_KEY, JSON.stringify(parsed));
+    }
+  } catch (err) {
+    console.warn("Storage check failed:", err);
   }
 }
 
@@ -259,9 +443,19 @@ function setRole(next) {
 }
 
 async function render() {
-  document.querySelector("#brand-name").textContent = t("brand");
-  document.querySelector("#user-chip").textContent = role === "teacher" ? (teacherName || t("teacherMode")) : (studentName || t("studentMode"));
-  document.querySelector("#language-toggle").textContent = language === "ar" ? t("english") : t("arabic");
+  const brandName = document.querySelector("#brand-name");
+  const userChip = document.querySelector("#user-chip");
+  const languageToggle = document.querySelector("#language-toggle");
+
+  if (brandName) brandName.textContent = t("brand");
+  if (userChip) {
+    userChip.textContent = role === "teacher"
+      ? (teacherName || t("teacherMode"))
+      : (studentName || t("studentMode"));
+  }
+  if (languageToggle) {
+    languageToggle.textContent = language === "ar" ? t("english") : t("arabic");
+  }
 
   document.querySelectorAll(".role-button").forEach((btn) => {
     btn.textContent = t(btn.dataset.role === "student" ? "studentMode" : "teacherMode");
@@ -269,10 +463,22 @@ async function render() {
     btn.setAttribute("aria-pressed", String(btn.dataset.role === role));
   });
 
-  if (currentView === "teacher") await renderTeacher();
-  else if (currentView === "quiz") renderQuiz();
-  else if (currentView === "results") await renderResults();
-  else await renderStudent();
+  try {
+    if (currentView === "teacher") await renderTeacher();
+    else if (currentView === "quiz") renderQuiz();
+    else if (currentView === "results") await renderResults();
+    else await renderStudent();
+  } catch (error) {
+    console.error("Unable to render the current view.", error);
+    if (app) {
+      app.innerHTML = `
+        <section class="empty-state">
+          <h3>${escapeHtml(t("renderError"))}</h3>
+          <p>${escapeHtml(t("refreshPage"))}</p>
+        </section>
+      `;
+    }
+  }
 }
 
 /**
@@ -294,7 +500,7 @@ async function renderStudent() {
     <section class="page-heading">
       <div>
         <div class="eyebrow">${t("studentWorkspace")}</div>
-        <h1>${t("goodMorning", { name: escapeHtml((studentName || "Student").split(" ")[0]) })}</h1>
+        <h1>${t("goodMorning", { name: escapeHtml((studentName || t("studentMode")).split(" ")[0]) })}</h1>
         <p class="subtitle">${t("studentSubtitle")}</p>
       </div>
       <div class="student-entry">
@@ -329,7 +535,7 @@ async function renderStudent() {
       </div>
       <div class="metric-card">
         <div class="metric-label">${t("nextDue")}</div>
-        <div class="metric-value">${getNextDue(homework, submissions)}</div>
+        <div class="metric-value">${getNextDue(classHomework, submissions)}</div>
         <div class="metric-note">${t("momentum")}</div>
       </div>
     </section>
@@ -416,7 +622,7 @@ function renderStudentCard(item, submissions) {
 }
 
 /**
- * Quiz Engine with Audio Separation
+ * Quiz Engine with Audio Separation & Name Guard
  */
 async function startQuiz(homeworkId) {
   const homework = await DatabaseService.getHomework();
@@ -428,6 +634,14 @@ async function startQuiz(homeworkId) {
     studentName = currentInput;
     localStorage.setItem(STUDENT_KEY, studentName);
   }
+
+  // Name Validation Guard
+  if (!studentName.trim()) {
+    showToast(t("nameRequired"));
+    document.querySelector("#student-name")?.focus();
+    return;
+  }
+
   activeQuestionIndex = 0;
   quizAnswers = Array(activeQuiz.questions.length).fill(null);
   currentView = "quiz";
@@ -610,7 +824,7 @@ async function renderTeacher() {
     <section class="page-heading">
       <div>
         <div class="eyebrow">${t("teacherWorkspace")}</div>
-        <h1>${t("teacherWelcome", { name: escapeHtml((teacherName || "Teacher").split(" ")[0]) })}</h1>
+        <h1>${t("teacherWelcome", { name: escapeHtml((teacherName || t("teacherMode")).split(" ")[0]) })}</h1>
         <p class="subtitle">${t("teacherSubtitle")}</p>
       </div>
       <div class="teacher-controls">
@@ -669,7 +883,7 @@ async function renderTeacher() {
                   <p>${escapeHtml(item.subject)} ·${item.questions.length} ${t("questions")} · ${t("publishedOn", { date: formatDate(item.createdAt?.slice(0, 10)) })}</p>
                 </div>
                 <div class="inline-actions">
-                  <button class="button button-secondary button-small" data-track="${item.id}" type="button">${count} ${t("submission")}</button>
+                  <button class="button button-secondary button-small" data-track="${item.id}" type="button">${count}${t("submission")}</button>
                   <button class="button button-danger button-small" data-delete="${item.id}" type="button">${t("delete")}</button>
                 </div>
               </div>
@@ -946,7 +1160,7 @@ function addQuestionBuilder(container) {
           button.textContent = "🎙️";
         });
         optRecBtn.classList.add("recording");
-        optRecBtn.textContent = "⏹️";
+        optRecBtn.textContent = "⏹️️";
         VoiceSystem.startRecording(
           (dataUrl) => {
             const arr = JSON.parse(wrapper.dataset.optionsAudio);
@@ -1119,7 +1333,7 @@ async function renderTracker(homeworkId) {
 document.documentElement.lang = language;
 document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
 
-document.querySelector("#language-toggle").addEventListener("click", () => {
+document.querySelector("#language-toggle")?.addEventListener("click", () => {
   setLanguage(language === "en" ? "ar" : "en");
 });
 
@@ -1131,4 +1345,4 @@ window.addEventListener("beforeunload", () => {
   VoiceSystem.stopAllPlayback();
 });
 
-initializeDefaultData().then(() => render());
+initializeDefaultData().finally(() => render());
