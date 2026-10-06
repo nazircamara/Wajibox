@@ -205,6 +205,23 @@ const DatabaseService = {
     writeLocalHomework([newItem, ...cached.filter((item) => item.id !== newItem.id)]);
     return newItem;
   },
+  async deleteHomework(id) {
+    try {
+      if (supabaseClient) {
+        const { error } = await supabaseClient
+          .from("homework")
+          .delete()
+          .eq("id", id);
+        if (error) console.error("Unable to delete homework from Supabase.", error);
+      }
+    } catch (error) {
+      console.error("Unable to delete homework from Supabase.", error);
+    }
+
+    const current = readLocalHomework();
+    writeLocalHomework(current.filter((item) => item.id !== id));
+    return true;
+  },
   async getSubmissions() {
     try {
       if (supabaseClient) {
@@ -858,8 +875,10 @@ async function renderResults() {
  * Teacher Workspace & Creator Views
  */
 async function renderTeacher() {
-  const homework = await DatabaseService.getHomework();
-  const submissions = await DatabaseService.getSubmissions();
+  const allHomework = await DatabaseService.getHomework();
+  const homework = allHomework.filter((item) => normalizeClassCode(item.classCode) === normalizeClassCode(teacherCode));
+  const allSubmissions = await DatabaseService.getSubmissions();
+  const submissions = allSubmissions.filter((sub) => homework.some((hw) => hw.id === sub.homeworkId));
 
   app.innerHTML = `
     <section class="page-heading">
@@ -1016,9 +1035,9 @@ async function renderTeacher() {
       const hw = await DatabaseService.getHomework();
       const target = hw.find((item) => item.id === b.dataset.delete);
       if (!target || !confirm(t("deleteConfirm", { title: target.title }))) return;
-      await DatabaseService.saveHomework(hw.filter((item) => item.id !== target.id));
+      await DatabaseService.deleteHomework(target.id);
       showToast(t("deletedToast"));
-      renderTeacher();
+      await renderTeacher();
     });
   });
 
