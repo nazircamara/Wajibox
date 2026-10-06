@@ -172,6 +172,43 @@ const DatabaseService = {
     writeLocalHomework(items);
     return items;
   },
+  async createHomework(newItem) {
+    const payload = mapHomeworkItem(newItem);
+
+    try {
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient
+          .from("homework")
+          .insert([payload])
+          .select();
+
+        if (!error && Array.isArray(data) && data[0]) {
+          const savedItem = mapHomeworkRow(data[0]);
+          const cached = readLocalHomework();
+          writeLocalHomework([
+            savedItem,
+            ...cached.filter((item) => item.id !== savedItem.id)
+          ]);
+          return savedItem;
+        }
+
+        if (error) {
+          console.error("Supabase insert error:", error);
+          showToast(error.message || "Unable to save homework.");
+        }
+      }
+    } catch (error) {
+      console.error("Supabase insert error:", error);
+      showToast(error.message || "Unable to save homework.");
+    }
+
+    const cached = readLocalHomework();
+    writeLocalHomework([
+      newItem,
+      ...cached.filter((item) => item.id !== newItem.id)
+    ]);
+    return newItem;
+  },
   async getSubmissions() {
     try {
       if (supabaseClient) {
@@ -1223,20 +1260,18 @@ async function publishAssignment(e) {
 
   if (!title || !subject || !dueDate) return alert(t("completeDetails"));
 
-  const homework = await DatabaseService.getHomework();
-  await DatabaseService.saveHomework([
-    ...homework,
-    {
-      id: `hw-${Date.now()}`,
-      title,
-      subject,
-      dueDate,
-      teacherName,
-      classCode: teacherCode,
-      createdAt: new Date().toISOString(),
-      questions
-    }
-  ]);
+  const newAssignment = {
+    id: `hw-${Date.now()}`,
+    title,
+    subject,
+    dueDate,
+    teacherName: teacherName || "Teacher",
+    classCode: teacherCode,
+    createdAt: new Date().toISOString(),
+    questions
+  };
+
+  await DatabaseService.createHomework(newAssignment);
 
   showToast(t("publishedToast"));
   renderTeacher();
