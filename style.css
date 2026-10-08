@@ -27,9 +27,9 @@ body {
   line-height: 1.5;
 }
 
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 button { cursor: pointer; }
-button:focus-visible, input:focus-visible { outline: 3px solid rgba(19, 138, 134, .25); outline-offset: 2px; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid rgba(19, 138, 134, .25); outline-offset: 2px; }
 button:disabled { cursor: not-allowed; opacity: .45; }
 
 .app-shell { min-height: 100vh; }
@@ -61,6 +61,7 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .page-content { max-width: 1220px; margin: 0 auto; padding: 40px 5vw 70px; }
 .page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 30px; }
 .teacher-controls { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+.teacher-code-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .student-entry { display: flex; align-items: flex-end; gap: 8px; }
 .student-entry label { display: flex; flex-direction: column; gap: 5px; color: var(--muted); font-size: 11px; font-weight: 800; }
 .student-entry input { width: 170px; border: 1px solid var(--line); border-radius: 9px; padding: 10px 11px; color: var(--ink); background: var(--paper); }
@@ -166,6 +167,54 @@ h3 { margin-bottom: 5px; font-size: 16px; }
 .teacher-assignment p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
 .inline-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
 
+/* Grade sub-code controls */
+#quick-copy-grade {
+  min-width: 174px;
+  height: 52px;
+  padding: 0 35px 0 13px;
+  border: 1px solid #b9d9d4;
+  border-radius: 11px;
+  background-color: var(--teal-soft);
+  color: var(--teal-dark);
+  box-shadow: 0 4px 12px rgba(40, 63, 67, .06);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
+}
+#quick-copy-grade:hover,
+#quick-copy-grade:focus {
+  border-color: var(--teal);
+  background-color: var(--paper);
+  box-shadow: 0 6px 16px rgba(19, 138, 134, .12);
+  outline: none;
+}
+.creator-layout .form-grid select#target-grade {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background-color: #fbfcfc;
+  color: var(--ink);
+  appearance: auto;
+}
+.creator-layout .form-grid select#target-grade:focus {
+  border-color: var(--teal);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(19, 138, 134, .12);
+}
+[dir="rtl"] #quick-copy-grade {
+  padding-right: 13px;
+  padding-left: 35px;
+  direction: rtl;
+  text-align: right;
+}
+[dir="rtl"] .creator-layout .form-grid select#target-grade {
+  direction: rtl;
+  text-align: right;
+}
+
 .quiz-wrap { max-width: 780px; margin: 0 auto; }
 .quiz-card { padding: clamp(22px, 5vw, 36px); }
 .quiz-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
@@ -205,6 +254,8 @@ h3 { margin-bottom: 5px; font-size: 16px; }
   .class-code-entry input { flex: 1; width: auto; }
   .metric-grid, .assignment-list, .creator-layout, .teacher-grid { grid-template-columns: 1fr; }
   .preview-panel { position: static; }
+  .teacher-code-tools { align-items: stretch; }
+  #quick-copy-grade { flex: 1 1 174px; }
 }
 @media (max-width: 540px) {
   .form-grid, .options-grid, .result-summary { grid-template-columns: 1fr; }

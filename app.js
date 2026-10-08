@@ -377,7 +377,7 @@ const VoiceSystem = {
 const translations = {
   en: {
     brand: "Wajibox", studentMode: "Student", teacherMode: "Teacher", arabic: "العربية", english: "English",
-    studentWorkspace: "Student workspace", teacherWorkspace: "Teacher workspace", goodMorning: "Welcome, {name}.", studentSubtitle: "Stay on top of your learning. Your next win is waiting below.", switchStudent: "Save name", classCode: "Class Code", enterClassCode: "Enter Class Code", joinClass: "Join Class", copyCode: "Copy Code", codeCopied: "Class code copied to clipboard!", noClassCodePrompt: "Enter your teacher's class code above to view your assignments.",
+    studentWorkspace: "Student workspace", teacherWorkspace: "Teacher workspace", goodMorning: "Welcome, {name}.", studentSubtitle: "Stay on top of your learning. Your next win is waiting below.", switchStudent: "Save name", classCode: "Class Code", targetGrade: "Target Grade", quickCopy: "Copy Grade Code", enterClassCode: "Enter your class sub-code (e.g., WJB-193-G4)", joinClass: "Join Class", copyCode: "Copy Code", codeCopied: "Class code copied to clipboard!", noClassCodePrompt: "Enter your teacher's class sub-code above (e.g., WJB-193-G4) to view your assignments.",
     assigned: "Assigned to you", completed: "Completed", acrossClasses: "Across your classes", steadyProgress: "Steady progress", nextDue: "Next due", momentum: "Keep your momentum", today: "Today", days: "{n}d", yourHomework: "Your homework", pending: "Pending", nothingHere: "Nothing here yet", checkBack: "Check back after your teacher publishes an assignment.", notStarted: "Not started", questions: "questions", due: "Due {date}", ready: "Ready when you are", start: "Start assignment", reviewResults: "Review results", submitted: "Submitted {date}", studentName: "Student name", studentPlaceholder: "Enter your name", nameRequired: "Please enter your name first.",
     buildPractice: "Build better practice.", teacherSubtitle: "Create focused homework, publish it in seconds, and track class progress.", newAssignment: "+ New assignment", published: "Published assignments", liveAssignment: "1 live assignment", liveAcross: "Live across classes", submissions: "Total submissions", allStudents: "Across all students", average: "Class average", feedback: "Class performance", assignmentLibrary: "Assignment library", selectAssignment: "Inspect assigned work and review answers.", classPulse: "Class pulse", recentWork: "A quick look at recent student submissions.", emptyLibrary: "Your library is empty", createFirst: "Create your first assignment to get started.", noSubmissions: "No submissions yet", resultsShow: "Student results will show up here after submission.", submission: "submission", publishedOn: "Published {date}", delete: "Delete", viewAnswers: "View answers", backDashboard: "Back to dashboard",
     createAssignment: "Create an assignment.", createSubtitle: "Give students clear questions and voice guidance.", newLabel: "Teacher workspace / new", assignmentDetails: "Assignment details", fieldsSaved: "Fields save when you publish.", title: "Assignment title", titlePlaceholder: "e.g. Science Checkpoint", subject: "Subject", subjectPlaceholder: "Science", dueDate: "Due date", addQuestion: "+ Add question", publish: "Publish homework", checklist: "Publishing checklist", checklistHelp: "A quick check before students take this.", checklistText: "Strong assignments offer clear text and audio for easy listening.", answerChoices: "Answer choices", perQuestion: "4 per question", grading: "Grading", automatic: "Automatic", questionText: "Question text", questionPlaceholder: "Write a clear question", answerPlaceholder: "Option {letter}", remove: "Remove", questionNumber: "Question {n}",
@@ -389,7 +389,7 @@ const translations = {
   },
   ar: {
     brand: "واجيبوكس", studentMode: "الطالب", teacherMode: "المعلم", arabic: "العربية", english: "English",
-    studentWorkspace: "مساحة الطالب", teacherWorkspace: "مساحة المعلم", goodMorning: "مرحباً، {name}.", studentSubtitle: "تابع تقدمك الدراسي، وإنجازك القادم بانتظارك هنا.", switchStudent: "حفظ الاسم", classCode: "رمز الصف", enterClassCode: "أدخل رمز الصف", joinClass: "انضمام للصف", copyCode: "نسخ الرمز", codeCopied: "تم نسخ رمز الصف بنجاح!", noClassCodePrompt: "أدخل رمز الصف الخاص بمعلمك أعلاه لعرض واجباتك.",
+    studentWorkspace: "مساحة الطالب", teacherWorkspace: "مساحة المعلم", goodMorning: "مرحباً، {name}.", studentSubtitle: "تابع تقدمك الدراسي، وإنجازك القادم بانتظارك هنا.", switchStudent: "حفظ الاسم", classCode: "رمز الصف", targetGrade: "الصف المستهدف", quickCopy: "نسخ رمز الصف", enterClassCode: "أدخل رمز الصف الفرعي (مثال: WJB-193-G4)", joinClass: "انضمام للصف", copyCode: "نسخ الرمز", codeCopied: "تم نسخ رمز الصف بنجاح!", noClassCodePrompt: "أدخل رمز الصف الفرعي الخاص بمعلمك (مثال: WJB-193-G4) لعرض واجباتك.",
     assigned: "الواجبات المعيّنة", completed: "المكتملة", acrossClasses: "في جميع موادك", steadyProgress: "تقدم مستمر", nextDue: "أقرب موعد", momentum: "واصل تقدمك", today: "اليوم", days: "{n} يوم", yourHomework: "واجباتك", pending: "قيد الانتظار", nothingHere: "لا توجد واجبات هنا", checkBack: "عد لاحقاً بعد أن ينشر المعلم واجباً جديداً.", notStarted: "لم يبدأ", questions: "أسئلة", due: "التسليم {date}", ready: "جاهز للبدء", start: "بدء الواجب", reviewResults: "مراجعة النتائج", submitted: "أُرسل {date}", studentName: "اسم الطالب", studentPlaceholder: "أدخل اسمك", nameRequired: "يرجى كتابة اسم الطالب أولاً.",
     buildPractice: "أنشئ تدريباً أفضل.", teacherSubtitle: "أنشئ واجبات مركزة مع تسجيل صوتي وتابع مستوى الصف.", newAssignment: "+ واجب جديد", published: "الواجبات المنشورة", liveAssignment: "واجب واحد نشط", liveAcross: "منشورة لجميع الصفوف", submissions: "إجمالي التسليمات", allStudents: "لجميع الطلاب", average: "متوسط الصف", feedback: "أداء الصف", assignmentLibrary: "مكتبة الواجبات", selectAssignment: "اختر واجباً لمراجعة الإجابات والتسليمات.", classPulse: "نبض الصف", recentWork: "نظرة سريعة على أحدث تسليمات الطلاب.", emptyLibrary: "مكتبتك فارغة", createFirst: "أنشئ أول واجب للبدء.", noSubmissions: "لا توجد تسليمات بعد", resultsShow: "ستظهر نتائج الطلاب هنا بعد التسليم.", submission: "تسليم", publishedOn: "نُشر {date}", delete: "حذف", viewAnswers: "عرض الإجابات", backDashboard: "العودة للوحة التحكم",
     createAssignment: "أنشئ واجباً.", createSubtitle: "امنح طلابك أسئلة واضحة مع إمكانية القراءة الصوتية.", newLabel: "مساحة المعلم / جديد", assignmentDetails: "تفاصيل الواجب", fieldsSaved: "تُحفظ البيانات عند النشر.", title: "العنوان", titlePlaceholder: "مثال: مراجعة العلوم العامة", subject: "المادة", subjectPlaceholder: "العلوم", dueDate: "تاريخ التسليم", addQuestion: "+ إضافة سؤال", publish: "نشر الواجب", checklist: "قائمة التحقق", checklistHelp: "فحص سريع للجودة قبل النشر.", checklistText: "الواجب الجيد يحتوي نصوصاً واضحة وتسجيلات صوتية مساعدة.", answerChoices: "خيارات الإجابة", perQuestion: "4 لكل سؤال", grading: "التصحيح", automatic: "تلقائي", questionText: "نص السؤال", questionPlaceholder: "اكتب سؤالاً واضحاً", answerPlaceholder: "الخيار {letter}", remove: "حذف", questionNumber: "السؤال {n}",
@@ -403,8 +403,47 @@ const translations = {
 
 const letters = { en: ["A", "B", "C", "D"], ar: ["أ", "ب", "ج", "د"] };
 
+const GRADE_LEVELS = [
+  { id: "G1", label: "Grade 1", labelAr: "الصف الأول" },
+  { id: "G2", label: "Grade 2", labelAr: "الصف الثاني" },
+  { id: "G3", label: "Grade 3", labelAr: "الصف الثالث" },
+  { id: "G4", label: "Grade 4", labelAr: "الصف الرابع" },
+  { id: "G5", label: "Grade 5", labelAr: "الصف الخامس" },
+  { id: "G6", label: "Grade 6", labelAr: "الصف السادس" },
+  { id: "G7", label: "Grade 7", labelAr: "الصف السابع" },
+  { id: "G8", label: "Grade 8", labelAr: "الصف الثامن" },
+  { id: "G9", label: "Grade 9", labelAr: "الصف التاسع" },
+  { id: "G10", label: "Grade 10", labelAr: "الصف العاشر" },
+  { id: "G11", label: "Grade 11", labelAr: "الصف الحادي عشر" },
+  { id: "G12", label: "Grade 12", labelAr: "الصف الثاني عشر" }
+];
+
 function normalizeClassCode(code) {
   return String(code || "").trim().toUpperCase();
+}
+
+async function copyClassCode(code) {
+  const normalizedCode = normalizeClassCode(code);
+  if (!normalizedCode) return;
+
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(normalizedCode);
+    } else {
+      const helper = document.createElement("textarea");
+      helper.value = normalizedCode;
+      helper.setAttribute("readonly", "");
+      helper.style.position = "fixed";
+      helper.style.opacity = "0";
+      document.body.appendChild(helper);
+      helper.select();
+      document.execCommand("copy");
+      helper.remove();
+    }
+    showToast(t("codeCopied"));
+  } catch (error) {
+    console.error("Unable to copy class code.", error);
+  }
 }
 
 function getOrCreateTeacherCode() {
@@ -575,7 +614,7 @@ async function renderStudent() {
       </div>
       <div class="class-code-entry">
         <label class="sr-only" for="student-class-code">${t("enterClassCode")}</label>
-        <input id="student-class-code" maxlength="7" value="${escapeHtml(studentClassCode)}" placeholder="${t("enterClassCode")}" autocomplete="off" />
+        <input id="student-class-code" maxlength="14" value="${escapeHtml(studentClassCode)}" placeholder="${t("enterClassCode")}" autocomplete="off" />
         <button class="button button-primary button-small" id="join-class" type="button">${t("joinClass")}</button>
       </div>
     </section>
@@ -876,7 +915,11 @@ async function renderResults() {
  */
 async function renderTeacher() {
   const allHomework = await DatabaseService.getHomework();
-  const homework = allHomework.filter((item) => normalizeClassCode(item.classCode) === normalizeClassCode(teacherCode));
+  const normalizedTeacherCode = normalizeClassCode(teacherCode);
+  const homework = allHomework.filter((item) => {
+    const itemCode = normalizeClassCode(item.classCode);
+    return itemCode === normalizedTeacherCode || itemCode.startsWith(`${normalizedTeacherCode}-`);
+  });
   const allSubmissions = await DatabaseService.getSubmissions();
   const submissions = allSubmissions.filter((sub) => homework.some((hw) => hw.id === sub.homeworkId));
 
@@ -888,12 +931,21 @@ async function renderTeacher() {
         <p class="subtitle">${t("teacherSubtitle")}</p>
       </div>
       <div class="teacher-controls">
-        <div class="class-code-badge">
-          <div>
-            <span class="class-code-label">${t("classCode")}</span>
-            <strong>${escapeHtml(teacherCode)}</strong>
+        <div class="teacher-code-tools">
+          <div class="class-code-badge">
+            <div>
+              <span class="class-code-label">${t("classCode")}</span>
+              <strong>${escapeHtml(teacherCode)}</strong>
+            </div>
+            <button id="copy-class-code" class="class-code-copy" type="button" title="${t("copyCode")}" aria-label="${t("copyCode")}">📋</button>
           </div>
-          <button id="copy-class-code" class="class-code-copy" type="button" title="${t("copyCode")}" aria-label="${t("copyCode")}">📋</button>
+          <div class="sub-code-picker">
+            <label class="sr-only" for="quick-copy-grade">${t("quickCopy")}</label>
+            <select id="quick-copy-grade" title="${t("quickCopy")}">
+              <option value="">${t("quickCopy")}</option>
+              ${GRADE_LEVELS.map((grade) => `<option value="${grade.id}">${escapeHtml(`${normalizedTeacherCode}-${grade.id}`)}</option>`).join("")}
+            </select>
+          </div>
         </div>
         <div class="student-entry">
           <label for="teacher-name">${t("teacherName")}</label>
@@ -943,6 +995,7 @@ async function renderTeacher() {
                   <p>${escapeHtml(item.subject)} ·${item.questions.length} ${t("questions")} · ${t("publishedOn", { date: formatDate(item.createdAt?.slice(0, 10)) })}</p>
                 </div>
                 <div class="inline-actions">
+                  <span class="badge badge-pending">${escapeHtml(normalizeClassCode(item.classCode))}</span>
                   <button class="button button-secondary button-small" data-track="${item.id}" type="button">${count}${t("submission")}</button>
                   <button class="button button-danger button-small" data-delete="${item.id}" type="button">${t("delete")}</button>
                 </div>
@@ -982,24 +1035,12 @@ async function renderTeacher() {
 
   document.querySelector("#new-assignment").addEventListener("click", renderCreator);
   document.querySelector("#copy-class-code").addEventListener("click", async () => {
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(teacherCode);
-      } else {
-        const helper = document.createElement("textarea");
-        helper.value = teacherCode;
-        helper.setAttribute("readonly", "");
-        helper.style.position = "fixed";
-        helper.style.opacity = "0";
-        document.body.appendChild(helper);
-        helper.select();
-        document.execCommand("copy");
-        helper.remove();
-      }
-      showToast(t("codeCopied"));
-    } catch (error) {
-      console.error("Unable to copy class code.", error);
-    }
+    await copyClassCode(normalizedTeacherCode);
+  });
+  document.querySelector("#quick-copy-grade").addEventListener("change", async (event) => {
+    const grade = GRADE_LEVELS.find((item) => item.id === event.target.value);
+    if (grade) await copyClassCode(`${normalizedTeacherCode}-${grade.id}`);
+    event.target.selectedIndex = 0;
   });
   document.querySelector("#clear-submissions").addEventListener("click", async () => {
     if (!confirm(t("confirmClearSubmissions"))) return;
@@ -1082,6 +1123,12 @@ function renderCreator() {
           <div class="field">
             <label for="due-date">${t("dueDate")}</label>
             <input id="due-date" name="dueDate" type="date" required value="${getFutureDate(7)}" />
+          </div>
+          <div class="field">
+            <label for="target-grade">${t("targetGrade")}</label>
+            <select id="target-grade" name="targetGrade" required>
+              ${GRADE_LEVELS.map((grade) => `<option value="${grade.id}" ${grade.id === "G4" ? "selected" : ""}>${escapeHtml(language === "ar" ? grade.labelAr : grade.label)}</option>`).join("")}
+            </select>
           </div>
         </div>
 
@@ -1289,8 +1336,11 @@ async function publishAssignment(e) {
   const title = data.get("title").trim();
   const subject = data.get("subject").trim();
   const dueDate = data.get("dueDate");
+  const targetGrade = String(data.get("targetGrade") || "").trim();
 
-  if (!title || !subject || !dueDate) return alert(t("completeDetails"));
+  if (!title || !subject || !dueDate || !GRADE_LEVELS.some((grade) => grade.id === targetGrade)) return alert(t("completeDetails"));
+
+  const fullSubCode = normalizeClassCode(teacherCode + "-" + targetGrade);
 
   const newAssignment = {
     id: `hw-${Date.now()}`,
@@ -1298,7 +1348,7 @@ async function publishAssignment(e) {
     subject,
     dueDate,
     teacherName: teacherName || "Teacher",
-    classCode: teacherCode,
+    classCode: fullSubCode,
     createdAt: new Date().toISOString(),
     questions
   };
