@@ -39,7 +39,6 @@ if (teacherName) {
 let studentClassCode = normalizeClassCode(localStorage.getItem(STUDENT_CLASS_CODE_KEY) || "");
 let studentFilter = "pending";
 let lastSubmission = null;
-let currentPlaybackAudio = null;
 
 /**
  * Pluggable Database Service Layer (Supabase / Firebase / LocalStorage)
@@ -311,67 +310,6 @@ const DatabaseService = {
 };
 
 /**
- * Audio Recording & Speech Synthesis Utilities
- */
-const VoiceSystem = {
-  activeRecorder: null,
-  activeStream: null,
-
-  async startRecording(onSuccess, onError) {
-    try {
-      this.activeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(this.activeStream);
-      const chunks = [];
-
-      mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "audio/webm" });
-        const reader = new FileReader();
-        reader.onloadend = () => onSuccess(reader.result);
-        reader.readAsDataURL(blob);
-        if (this.activeStream) {
-          this.activeStream.getTracks().forEach((track) => track.stop());
-        }
-      };
-
-      mediaRecorder.start();
-      this.activeRecorder = mediaRecorder;
-    } catch (err) {
-      if (onError) onError(err);
-    }
-  },
-
-  stopRecording() {
-    if (this.activeRecorder && this.activeRecorder.state !== "inactive") {
-      this.activeRecorder.stop();
-    }
-  },
-
-  stopAllPlayback() {
-    if (currentPlaybackAudio) {
-      currentPlaybackAudio.pause();
-      currentPlaybackAudio = null;
-    }
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
-  },
-
-  playOrSpeak(audioDataUrl, fallbackText, lang = "en") {
-    this.stopAllPlayback();
-    if (audioDataUrl) {
-      currentPlaybackAudio = new Audio(audioDataUrl);
-      currentPlaybackAudio.play();
-    } else if (fallbackText && window.speechSynthesis) {
-      const utterance = new SpeechSynthesisUtterance(fallbackText);
-      utterance.lang = lang === "ar" ? "ar-SA" : "en-US";
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    }
-  }
-};
-
-/**
  * Localization Dictionary
  */
 const translations = {
@@ -380,24 +318,24 @@ const translations = {
     studentWorkspace: "Student workspace", teacherWorkspace: "Teacher workspace", goodMorning: "Welcome, {name}.", studentSubtitle: "Stay on top of your learning. Your next win is waiting below.", switchStudent: "Save name", classCode: "Class Code", targetGrade: "Target Grade", quickCopy: "Copy Grade Code", enterClassCode: "Enter your class sub-code (e.g., WJB-193-G4)", joinClass: "Join Class", copyCode: "Copy Code", codeCopied: "Class code copied to clipboard!", noClassCodePrompt: "Enter your teacher's class sub-code above (e.g., WJB-193-G4) to view your assignments.",
     assigned: "Assigned to you", completed: "Completed", acrossClasses: "Across your classes", steadyProgress: "Steady progress", nextDue: "Next due", momentum: "Keep your momentum", today: "Today", days: "{n}d", yourHomework: "Your homework", pending: "Pending", nothingHere: "Nothing here yet", checkBack: "Check back after your teacher publishes an assignment.", notStarted: "Not started", questions: "questions", due: "Due {date}", ready: "Ready when you are", start: "Start assignment", reviewResults: "Review results", submitted: "Submitted {date}", studentName: "Student name", studentPlaceholder: "Enter your name", nameRequired: "Please enter your name first.",
     buildPractice: "Build better practice.", teacherSubtitle: "Create focused homework, publish it in seconds, and track class progress.", newAssignment: "+ New assignment", published: "Published assignments", liveAssignment: "1 live assignment", liveAcross: "Live across classes", submissions: "Total submissions", allStudents: "Across all students", average: "Class average", feedback: "Class performance", assignmentLibrary: "Assignment library", selectAssignment: "Inspect assigned work and review answers.", classPulse: "Class pulse", recentWork: "A quick look at recent student submissions.", emptyLibrary: "Your library is empty", createFirst: "Create your first assignment to get started.", noSubmissions: "No submissions yet", resultsShow: "Student results will show up here after submission.", submission: "submission", publishedOn: "Published {date}", delete: "Delete", viewAnswers: "View answers", backDashboard: "Back to dashboard",
-    createAssignment: "Create an assignment.", createSubtitle: "Give students clear questions and voice guidance.", newLabel: "Teacher workspace / new", assignmentDetails: "Assignment details", fieldsSaved: "Fields save when you publish.", title: "Assignment title", titlePlaceholder: "e.g. Science Checkpoint", subject: "Subject", subjectPlaceholder: "Science", dueDate: "Due date", addQuestion: "+ Add question", publish: "Publish homework", checklist: "Publishing checklist", checklistHelp: "A quick check before students take this.", checklistText: "Strong assignments offer clear text and audio for easy listening.", answerChoices: "Answer choices", perQuestion: "4 per question", grading: "Grading", automatic: "Automatic", questionText: "Question text", questionPlaceholder: "Write a clear question", answerPlaceholder: "Option {letter}", remove: "Remove", questionNumber: "Question {n}",
-    quizPrompt: "Listen or read carefully, then choose your answer.", questionCounter: "Question {current} of {total}", selectAnswer: "Select an answer to continue.", answerSaved: "Answer recorded.", previous: "Previous", next: "Next question", submit: "Submit homework", chooseAnswer: "Please choose an answer.", unanswered: "Please answer all questions before submitting.", submitConfirm: "Submit homework now?",
+    createAssignment: "Create an assignment.", createSubtitle: "Give students clear text questions and answer choices.", newLabel: "Teacher workspace / new", assignmentDetails: "Assignment details", fieldsSaved: "Fields save when you publish.", title: "Assignment title", titlePlaceholder: "e.g. Science Checkpoint", subject: "Subject", subjectPlaceholder: "Science", dueDate: "Due date", addQuestion: "+ Add question", publish: "Publish homework", checklist: "Publishing checklist", checklistHelp: "A quick check before students take this.", checklistText: "Strong assignments offer clear questions and answer choices.", answerChoices: "Answer choices", perQuestion: "4 per question", grading: "Grading", automatic: "Automatic", questionText: "Question text", questionPlaceholder: "Write a clear question", answerPlaceholder: "Option {letter}", remove: "Remove", questionNumber: "Question {n}",
+    quizPrompt: "Read the question carefully, then choose your answer.", questionCounter: "Question {current} of {total}", selectAnswer: "Select an answer to continue.", answerSaved: "Answer saved.", previous: "Previous", next: "Next question", submit: "Submit homework", chooseAnswer: "Please choose an answer.", unanswered: "Please answer all questions before submitting.", submitConfirm: "Submit homework now?",
     submissionComplete: "Submission complete", passedHeadline: "You passed. Nice work!", reviewHeadline: "Keep practicing. You are getting there.", feedbackFor: "Here is your feedback for {title}.", backHomework: "Back to homework", finalScore: "Final score", correctAnswers: "Correct answers", result: "Result", passed: "Passed", failed: "Failed", review: "Review", reviewAnswers: "Review your answers", passingScore: "Passing score", morePractice: "Needs practice", yourAnswer: "Your answer", correctAnswer: "Correct answer", correctMessage: "Correct! Keep up the great work.", wrongMessage: "The correct choice was {answer}.",
     resultsWorkspace: "Teacher workspace / results", dueLabel: "Due {date}", tracker: "Submission tracker", received: "{n} submissions received", classAverage: "{n}% class average", noStudent: "No student submissions yet", shareAssignment: "Share the assignment with your class.", student: "Student", submittedAt: "Submitted {date}", studentReview: "Student review", close: "Close", correct: "Correct",
     teacherName: "Teacher name", teacherPlaceholder: "Enter teacher name", switchTeacher: "Save name", teacherWelcome: "Welcome, {name}.", clearSubmissions: "Clear submissions", confirmClearSubmissions: "Clear all assignments and student submissions? This cannot be undone.", dashboardClearedToast: "All assignments and submissions cleared.", publishedToast: "Assignment published!", deletedToast: "Assignment deleted.", deleteConfirm: "Delete {title}?", completeDetails: "Please fill in title, subject, and due date.", questionBlank: "Add text to every question.", optionsMissing: "Fill all 4 answer options.", correctMissing: "Select the correct radio choice.",
-    recordQuestionAudio: "Record Question", recordOptionAudio: "Record Audio", recordingState: "Recording...", stopRecordingState: "Stop", audioRecorded: "Voice recorded", playAudio: "Listen", readAloud: "Read Aloud", deleteAudio: "Remove Voice", micPermissionDenied: "Microphone permission is required to record voice audio.", renderError: "This view could not be loaded.", refreshPage: "Please refresh the page and try again."
+    renderError: "This view could not be loaded.", refreshPage: "Please refresh the page and try again."
   },
   ar: {
     brand: "واجيبوكس", studentMode: "الطالب", teacherMode: "المعلم", arabic: "العربية", english: "English",
     studentWorkspace: "مساحة الطالب", teacherWorkspace: "مساحة المعلم", goodMorning: "مرحباً، {name}.", studentSubtitle: "تابع تقدمك الدراسي، وإنجازك القادم بانتظارك هنا.", switchStudent: "حفظ الاسم", classCode: "رمز الصف", targetGrade: "الصف المستهدف", quickCopy: "نسخ رمز الصف", enterClassCode: "أدخل رمز الصف الفرعي (مثال: WJB-193-G4)", joinClass: "انضمام للصف", copyCode: "نسخ الرمز", codeCopied: "تم نسخ رمز الصف بنجاح!", noClassCodePrompt: "أدخل رمز الصف الفرعي الخاص بمعلمك (مثال: WJB-193-G4) لعرض واجباتك.",
     assigned: "الواجبات المعيّنة", completed: "المكتملة", acrossClasses: "في جميع موادك", steadyProgress: "تقدم مستمر", nextDue: "أقرب موعد", momentum: "واصل تقدمك", today: "اليوم", days: "{n} يوم", yourHomework: "واجباتك", pending: "قيد الانتظار", nothingHere: "لا توجد واجبات هنا", checkBack: "عد لاحقاً بعد أن ينشر المعلم واجباً جديداً.", notStarted: "لم يبدأ", questions: "أسئلة", due: "التسليم {date}", ready: "جاهز للبدء", start: "بدء الواجب", reviewResults: "مراجعة النتائج", submitted: "أُرسل {date}", studentName: "اسم الطالب", studentPlaceholder: "أدخل اسمك", nameRequired: "يرجى كتابة اسم الطالب أولاً.",
-    buildPractice: "أنشئ تدريباً أفضل.", teacherSubtitle: "أنشئ واجبات مركزة مع تسجيل صوتي وتابع مستوى الصف.", newAssignment: "+ واجب جديد", published: "الواجبات المنشورة", liveAssignment: "واجب واحد نشط", liveAcross: "منشورة لجميع الصفوف", submissions: "إجمالي التسليمات", allStudents: "لجميع الطلاب", average: "متوسط الصف", feedback: "أداء الصف", assignmentLibrary: "مكتبة الواجبات", selectAssignment: "اختر واجباً لمراجعة الإجابات والتسليمات.", classPulse: "نبض الصف", recentWork: "نظرة سريعة على أحدث تسليمات الطلاب.", emptyLibrary: "مكتبتك فارغة", createFirst: "أنشئ أول واجب للبدء.", noSubmissions: "لا توجد تسليمات بعد", resultsShow: "ستظهر نتائج الطلاب هنا بعد التسليم.", submission: "تسليم", publishedOn: "نُشر {date}", delete: "حذف", viewAnswers: "عرض الإجابات", backDashboard: "العودة للوحة التحكم",
-    createAssignment: "أنشئ واجباً.", createSubtitle: "امنح طلابك أسئلة واضحة مع إمكانية القراءة الصوتية.", newLabel: "مساحة المعلم / جديد", assignmentDetails: "تفاصيل الواجب", fieldsSaved: "تُحفظ البيانات عند النشر.", title: "العنوان", titlePlaceholder: "مثال: مراجعة العلوم العامة", subject: "المادة", subjectPlaceholder: "العلوم", dueDate: "تاريخ التسليم", addQuestion: "+ إضافة سؤال", publish: "نشر الواجب", checklist: "قائمة التحقق", checklistHelp: "فحص سريع للجودة قبل النشر.", checklistText: "الواجب الجيد يحتوي نصوصاً واضحة وتسجيلات صوتية مساعدة.", answerChoices: "خيارات الإجابة", perQuestion: "4 لكل سؤال", grading: "التصحيح", automatic: "تلقائي", questionText: "نص السؤال", questionPlaceholder: "اكتب سؤالاً واضحاً", answerPlaceholder: "الخيار {letter}", remove: "حذف", questionNumber: "السؤال {n}",
-    quizPrompt: "استمع أو اقرأ بتمعن، ثم اختر الإجابة المناسبة.", questionCounter: "السؤال {current} من {total}", selectAnswer: "اختر إجابة للمتابعة.", answerSaved: "تم تسجيل الإجابة.", previous: "السابق", next: "التالي", submit: "إرسال الواجب", chooseAnswer: "اختر إجابة أولاً.", unanswered: "يرجى الإجابة عن جميع الأسئلة قبل الإرسال.", submitConfirm: "هل تريد إرسال الواجب الآن؟",
+    buildPractice: "أنشئ تدريباً أفضل.", teacherSubtitle: "أنشئ واجبات مركزة، وانشرها خلال ثوانٍ، وتابع تقدم الصف.", newAssignment: "+ واجب جديد", published: "الواجبات المنشورة", liveAssignment: "واجب واحد نشط", liveAcross: "منشورة لجميع الصفوف", submissions: "إجمالي التسليمات", allStudents: "لجميع الطلاب", average: "متوسط الصف", feedback: "أداء الصف", assignmentLibrary: "مكتبة الواجبات", selectAssignment: "اختر واجباً لمراجعة الإجابات والتسليمات.", classPulse: "نبض الصف", recentWork: "نظرة سريعة على أحدث تسليمات الطلاب.", emptyLibrary: "مكتبتك فارغة", createFirst: "أنشئ أول واجب للبدء.", noSubmissions: "لا توجد تسليمات بعد", resultsShow: "ستظهر نتائج الطلاب هنا بعد التسليم.", submission: "تسليم", publishedOn: "نُشر {date}", delete: "حذف", viewAnswers: "عرض الإجابات", backDashboard: "العودة للوحة التحكم",
+    createAssignment: "أنشئ واجباً.", createSubtitle: "اكتب أسئلة وخيارات إجابة واضحة لطلابك.", newLabel: "مساحة المعلم / جديد", assignmentDetails: "تفاصيل الواجب", fieldsSaved: "تُحفظ البيانات عند النشر.", title: "العنوان", titlePlaceholder: "مثال: مراجعة العلوم العامة", subject: "المادة", subjectPlaceholder: "العلوم", dueDate: "تاريخ التسليم", addQuestion: "+ إضافة سؤال", publish: "نشر الواجب", checklist: "قائمة التحقق", checklistHelp: "فحص سريع للجودة قبل النشر.", checklistText: "الواجب الجيد يحتوي أسئلة وخيارات إجابة واضحة.", answerChoices: "خيارات الإجابة", perQuestion: "4 لكل سؤال", grading: "التصحيح", automatic: "تلقائي", questionText: "نص السؤال", questionPlaceholder: "اكتب سؤالاً واضحاً", answerPlaceholder: "الخيار {letter}", remove: "حذف", questionNumber: "السؤال {n}",
+    quizPrompt: "اقرأ السؤال بتمعن، ثم اختر الإجابة المناسبة.", questionCounter: "السؤال {current} من {total}", selectAnswer: "اختر إجابة للمتابعة.", answerSaved: "تم حفظ الإجابة.", previous: "السابق", next: "التالي", submit: "إرسال الواجب", chooseAnswer: "اختر إجابة أولاً.", unanswered: "يرجى الإجابة عن جميع الأسئلة قبل الإرسال.", submitConfirm: "هل تريد إرسال الواجب الآن؟",
     submissionComplete: "اكتمل التسليم", passedHeadline: "مبروك! لقد اجتزت الاختبار بنجاح.", reviewHeadline: "واصل التدريب، ستحقق نتيجة أفضل قريباً.", feedbackFor: "إليك نتائجك في {title}.", backHomework: "العودة للواجبات", finalScore: "الدرجة النهائية", correctAnswers: "الإجابات الصحيحة", result: "النتيجة", passed: "ناجح", failed: "راسب", review: "مراجعة", reviewAnswers: "راجع إجاباتك", passingScore: "درجة النجاح", morePractice: "بحاجة لتدريب", yourAnswer: "إجابتك", correctAnswer: "الإجابة الصحيحة", correctMessage: "إجابة صحيحة وممتازة!", wrongMessage: "الإجابة الصحيحة هي {answer}.",
     resultsWorkspace: "مساحة المعلم / النتائج", dueLabel: "التسليم {date}", tracker: "متابعة التسليمات", received: "تم استلام {n} تسليمات", classAverage: "متوسط الصف {n}%", noStudent: "لا توجد تسليمات بعد", shareAssignment: "شارك الواجب مع طلابك لبدء جمع الإجابات.", student: "الطالب", submittedAt: "أُرسل {date}", studentReview: "مراجعة إجابات الطالب", close: "إغلاق", correct: "صحيح",
     teacherName: "اسم المعلم", teacherPlaceholder: "أدخل اسم المعلم", switchTeacher: "حفظ الاسم", teacherWelcome: "مرحباً، {name}.", clearSubmissions: "مسح التسليمات", confirmClearSubmissions: "هل تريد مسح جميع الواجبات وتسليمات الطلاب؟ لا يمكن التراجع عن هذا الإجراء.", dashboardClearedToast: "تم مسح جميع الواجبات والتسليمات بنجاح.", publishedToast: "تم نشر الواجب بنجاح!", deletedToast: "تم حذف الواجب.", deleteConfirm: "هل أنت متأكد من حذف {title}؟", completeDetails: "يرجى ملء العنوان والمادة وتاريخ التسليم.", questionBlank: "يرجى كتابة نص لكل سؤال.", optionsMissing: "يرجى ملء خيارات الإجابة الأربعة.", correctMissing: "يرجى اختيار الإجابة الصحيحة.",
-    recordQuestionAudio: "تسجيل صوتي للسؤال", recordOptionAudio: "تسجيل صوتي", recordingState: "جارٍ التسجيل...", stopRecordingState: "إيقاف", audioRecorded: "تم التسجيل", playAudio: "استمع", readAloud: "قراءة آلية", deleteAudio: "حذف الصوت", micPermissionDenied: "يرجى منح إذن استخدام الميكروفون لتسجيل الصوت.", renderError: "تعذر تحميل هذه الصفحة.", refreshPage: "يرجى تحديث الصفحة والمحاولة مرة أخرى."
+    renderError: "تعذر تحميل هذه الصفحة.", refreshPage: "يرجى تحديث الصفحة والمحاولة مرة أخرى."
   }
 };
 
@@ -523,7 +461,6 @@ async function initializeDefaultData() {
  * Topbar & Global View Controllers
  */
 function setLanguage(next) {
-  VoiceSystem.stopAllPlayback();
   language = next;
   localStorage.setItem(LANGUAGE_KEY, language);
   document.documentElement.lang = language;
@@ -532,7 +469,6 @@ function setLanguage(next) {
 }
 
 function setRole(next) {
-  VoiceSystem.stopAllPlayback();
   role = next;
   currentView = next;
   localStorage.setItem(ROLE_KEY, role);
@@ -719,7 +655,7 @@ function renderStudentCard(item, submissions) {
 }
 
 /**
- * Quiz Engine with Audio Separation & Name Guard
+ * Text-only quiz engine with name guard
  */
 async function startQuiz(homeworkId) {
   const homework = await DatabaseService.getHomework();
@@ -768,22 +704,16 @@ function renderQuiz() {
         <div class="quiz-question">
           <div class="question-title-row">
             <h2>${escapeHtml(q.text)}</h2>
-            <button class="audio-btn" id="listen-question" type="button">
-              🔊 ${q.audio ? t("playAudio") : t("readAloud")}
-            </button>
           </div>
 
           <div class="quiz-options">
             ${q.options.map((opt, i) => `
-              <div class="quiz-option ${selected === i ? "selected" : ""}" data-choice-index="${i}">
-                <label class="option-label-wrap" style="flex:1; cursor:pointer;">
+              <label class="quiz-option ${selected === i ? "selected" : ""}" data-choice-index="${i}">
+                <span class="option-label-wrap">
                   <input type="radio" name="quiz-choice" value="${i}" ${selected === i ? "checked" : ""} />
                   <span>${escapeHtml(opt)}</span>
-                </label>
-                <button class="audio-btn option-listen-btn" type="button" data-index="${i}" title="${t("playAudio")}">
-                  🔊
-                </button>
-              </div>
+                </span>
+              </label>
             `).join("")}
           </div>
         </div>
@@ -801,19 +731,6 @@ function renderQuiz() {
     </div>
   `;
 
-  document.querySelector("#listen-question").addEventListener("click", () => {
-    VoiceSystem.playOrSpeak(q.audio, q.text, language);
-  });
-
-  document.querySelectorAll(".option-listen-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const idx = Number(btn.dataset.index);
-      const optAudio = q.optionsAudio ? q.optionsAudio[idx] : null;
-      VoiceSystem.playOrSpeak(optAudio, q.options[idx], language);
-    });
-  });
-
   document.querySelectorAll("input[name='quiz-choice']").forEach((radio) => {
     radio.addEventListener("change", () => {
       quizAnswers[activeQuestionIndex] = Number(radio.value);
@@ -822,14 +739,12 @@ function renderQuiz() {
   });
 
   document.querySelector("#quiz-prev").addEventListener("click", () => {
-    VoiceSystem.stopAllPlayback();
     activeQuestionIndex--;
     renderQuiz();
   });
 
   document.querySelector("#quiz-next")?.addEventListener("click", () => {
     if (quizAnswers[activeQuestionIndex] === null) return showToast(t("chooseAnswer"));
-    VoiceSystem.stopAllPlayback();
     activeQuestionIndex++;
     renderQuiz();
   });
@@ -841,7 +756,6 @@ async function submitQuiz() {
   if (quizAnswers.some((ans) => ans === null)) return alert(t("unanswered"));
   if (!confirm(t("submitConfirm"))) return;
 
-  VoiceSystem.stopAllPlayback();
   const score = activeQuiz.questions.reduce((sum, q, i) => sum + (q.correctIndex === quizAnswers[i] ? 1 : 0), 0);
   const record = {
     id: `sub-${Date.now()}`,
@@ -1088,10 +1002,9 @@ async function renderTeacher() {
 }
 
 /**
- * Assignment Creator with Inline Microphone Recording
+ * Assignment Creator
  */
 function renderCreator() {
-  VoiceSystem.stopAllPlayback();
   app.innerHTML = `
     <section class="page-heading">
       <div>
@@ -1175,22 +1088,11 @@ function addQuestionBuilder(container) {
   const number = container.children.length + 1;
   const wrapper = document.createElement("div");
   wrapper.className = "question-builder";
-  wrapper.dataset.audio = "";
-  wrapper.dataset.optionsAudio = JSON.stringify([null, null, null, null]);
 
   wrapper.innerHTML = `
     <div class="question-builder-header">
       <h3><span class="question-number">${number}</span>${t("questionNumber", { n: number })}</h3>
       ${number > 1 ? `<button class="button button-danger button-small remove-q" type="button">${t("remove")}</button>` : ""}
-    </div>
-
-    <!-- Main Question Audio Recorder -->
-    <div class="audio-recorder-bar">
-      <button class="audio-btn record-q-btn" type="button">🎙️ ${t("recordQuestionAudio")}</button>
-      <button class="audio-btn stop-q-btn" type="button" style="display:none">⏹️ ${t("stopRecordingState")}</button>
-      <span class="audio-pill q-audio-status" style="display:none">✓ ${t("audioRecorded")}</span>
-      <button class="audio-btn play-q-btn" type="button" style="display:none">▶️ ${t("playAudio")}</button>
-      <button class="audio-btn del-q-btn" type="button" style="display:none">🗑️</button>
     </div>
 
     <div class="field" style="margin-bottom:14px">
@@ -1204,97 +1106,12 @@ function addQuestionBuilder(container) {
           <input type="radio" name="correct-${number}" value="${i}" ${i === 0 ? "checked" : ""} />
           <span class="option-letter">${letter}</span>
           <input class="option-text" type="text" required placeholder="${t("answerPlaceholder", { letter })}" />
-          <button class="audio-btn record-opt-btn" type="button" title="${t("recordOptionAudio")}">🎙️</button>
-          <span class="opt-audio-status" style="display:none; font-size:10px">✓</span>
         </div>
       `).join("")}
     </div>
   `;
 
   container.appendChild(wrapper);
-
-  // Wire Question Audio Recorder
-  const recordQBtn = wrapper.querySelector(".record-q-btn");
-  const stopQBtn = wrapper.querySelector(".stop-q-btn");
-  const playQBtn = wrapper.querySelector(".play-q-btn");
-  const delQBtn = wrapper.querySelector(".del-q-btn");
-  const statusQ = wrapper.querySelector(".q-audio-status");
-
-  recordQBtn.addEventListener("click", () => {
-    recordQBtn.classList.add("recording");
-    recordQBtn.style.display = "none";
-    stopQBtn.style.display = "inline-flex";
-
-    VoiceSystem.startRecording(
-      (dataUrl) => {
-        wrapper.dataset.audio = dataUrl;
-        stopQBtn.style.display = "none";
-        recordQBtn.style.display = "none";
-        recordQBtn.classList.remove("recording");
-        statusQ.style.display = "inline-flex";
-        playQBtn.style.display = "inline-flex";
-        delQBtn.style.display = "inline-flex";
-      },
-      () => {
-        stopQBtn.style.display = "none";
-        recordQBtn.style.display = "inline-flex";
-        recordQBtn.classList.remove("recording");
-        alert(t("micPermissionDenied"));
-      }
-    );
-  });
-
-  stopQBtn.addEventListener("click", () => VoiceSystem.stopRecording());
-
-  playQBtn.addEventListener("click", () => {
-    VoiceSystem.playOrSpeak(wrapper.dataset.audio, null);
-  });
-
-  delQBtn.addEventListener("click", () => {
-    wrapper.dataset.audio = "";
-    statusQ.style.display = "none";
-    playQBtn.style.display = "none";
-    delQBtn.style.display = "none";
-    recordQBtn.style.display = "inline-flex";
-  });
-
-  // Wire Choice Audio Recorders
-  wrapper.querySelectorAll(".option-row").forEach((row) => {
-    const idx = Number(row.dataset.index);
-    const optRecBtn = row.querySelector(".record-opt-btn");
-    const optStatus = row.querySelector(".opt-audio-status");
-
-    optRecBtn.addEventListener("click", () => {
-      if (optRecBtn.classList.contains("recording")) {
-        VoiceSystem.stopRecording();
-        optRecBtn.classList.remove("recording");
-        optRecBtn.textContent = "🎙️";
-      } else {
-        VoiceSystem.stopRecording();
-        wrapper.querySelectorAll(".record-opt-btn.recording").forEach((button) => {
-          button.classList.remove("recording");
-          button.textContent = "🎙️";
-        });
-        optRecBtn.classList.add("recording");
-        optRecBtn.textContent = "⏹️️";
-        VoiceSystem.startRecording(
-          (dataUrl) => {
-            const arr = JSON.parse(wrapper.dataset.optionsAudio);
-            arr[idx] = dataUrl;
-            wrapper.dataset.optionsAudio = JSON.stringify(arr);
-            optStatus.style.display = "inline";
-            optRecBtn.classList.remove("recording");
-            optRecBtn.textContent = "✓";
-          },
-          () => {
-            optRecBtn.classList.remove("recording");
-            optRecBtn.textContent = "🎙️";
-            alert(t("micPermissionDenied"));
-          }
-        );
-      }
-    });
-  });
 
   wrapper.querySelector(".remove-q")?.addEventListener("click", () => {
     wrapper.remove();
@@ -1325,9 +1142,7 @@ async function publishAssignment(e) {
     questions.push({
       id: `q-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       text,
-      audio: b.dataset.audio || null,
       options,
-      optionsAudio: JSON.parse(b.dataset.optionsAudio),
       correctIndex: Number(selected.value)
     });
   }
@@ -1459,7 +1274,6 @@ document.querySelectorAll(".role-button").forEach((btn) => {
 });
 
 window.addEventListener("beforeunload", () => {
-  VoiceSystem.stopAllPlayback();
 });
 
 initializeDefaultData().finally(() => render());

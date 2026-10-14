@@ -133,14 +133,6 @@ h3 { margin-bottom: 5px; font-size: 16px; }
 .question-number { display: inline-flex; width: 24px; height: 24px; margin-right: 7px; align-items: center; justify-content: center; border-radius: 6px; background: var(--teal); color: white; font-size: 12px; font-weight: 800; }
 [dir="rtl"] .question-number { margin-right: 0; margin-left: 7px; }
 
-/* Voice recording widgets */
-.audio-recorder-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding: 8px 12px; background: #edf5f4; border-radius: 8px; flex-wrap: wrap; }
-.audio-btn { display: inline-flex; align-items: center; gap: 6px; border: 0; background: white; border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: 700; color: var(--ink); }
-.audio-btn:hover { background: var(--teal-soft); }
-.audio-btn.recording { background: var(--red); color: white; animation: pulse 1s infinite alternate; }
-@keyframes pulse { from { opacity: 1; } to { opacity: .7; } }
-.audio-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--teal); }
-
 .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .option-row { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 9px; background: white; }
 .option-row input[type="radio"] { accent-color: var(--teal); }
