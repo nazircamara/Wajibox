@@ -927,10 +927,24 @@ async function renderTeacher() {
           </div>
         </div>
         <div>
-          ${submissions.length ? submissions.slice(-5).reverse().map((s) => `
+          ${submissions.length ? submissions.slice().sort((a, b) => {
+            const scoreDifference = b.score - a.score;
+            if (scoreDifference !== 0) return scoreDifference;
+            return new Date(a.date).getTime() - new Date(b.date).getTime();
+          }).slice(0, 5).map((s) => {
+            const percentage = Math.round((s.score / s.total) * 100);
+            const percentageClasses = percentage >= 80
+              ? "bg-blue-100 text-blue-700"
+              : percentage >= 60
+                ? "bg-emerald-100 text-emerald-700"
+                : percentage >= 40
+                  ? "bg-amber-100 text-amber-700"
+                  : "bg-red-100 text-red-700";
+
+            return `
             <div class="tracker-row">
               <div class="student-info">
-                <span class="student-avatar">${initials(s.studentName)}</span>
+                <span class="student-avatar ${percentageClasses}">${initials(s.studentName)}</span>
                 <div>
                   <strong>${escapeHtml(s.studentName)}</strong>
                   <small>${formatDateTime(s.date)}</small>
@@ -938,10 +952,11 @@ async function renderTeacher() {
               </div>
               <div class="score">
                 ${s.score}/${s.total}
-                <small>${Math.round((s.score / s.total) * 100)}%</small>
+                <small class="${percentageClasses}">${percentage}%</small>
               </div>
             </div>
-          `).join("") : `<div class="empty-state"><h3>${t("noSubmissions")}</h3><p>${t("resultsShow")}</p></div>`}
+          `;
+          }).join("") : `<div class="empty-state"><h3>${t("noSubmissions")}</h3><p>${t("resultsShow")}</p></div>`}
         </div>
       </section>
     </div>
@@ -1177,7 +1192,13 @@ async function publishAssignment(e) {
 async function renderTracker(homeworkId) {
   const homework = await DatabaseService.getHomework();
   const target = homework.find((h) => h.id === homeworkId);
-  const submissions = (await DatabaseService.getSubmissions()).filter((s) => s.homeworkId === homeworkId);
+  const submissions = (await DatabaseService.getSubmissions())
+    .filter((s) => s.homeworkId === homeworkId)
+    .sort((a, b) => {
+      const scoreDifference = b.score - a.score;
+      if (scoreDifference !== 0) return scoreDifference;
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
 
   app.innerHTML = `
     <section class="page-heading">
@@ -1199,7 +1220,17 @@ async function renderTracker(homeworkId) {
       </div>
 
       <div>
-        ${submissions.length ? submissions.map((s) => `
+        ${submissions.length ? submissions.map((s) => {
+          const percentage = Math.round((s.score / s.total) * 100);
+          const percentageBadgeClass = percentage >= 80
+            ? "bg-blue-100 text-blue-700 border border-blue-200"
+            : percentage >= 60
+              ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+              : percentage >= 40
+                ? "bg-amber-100 text-amber-700 border border-amber-200"
+                : "bg-red-100 text-red-700 border border-red-200";
+
+          return `
           <div class="tracker-row">
             <div class="student-info">
               <span class="student-avatar">${initials(s.studentName)}</span>
@@ -1210,14 +1241,15 @@ async function renderTracker(homeworkId) {
             </div>
             <div class="score">
               ${s.score}/${s.total}
-              <small>${Math.round((s.score / s.total) * 100)}%</small>
+              <small>${percentage}%</small>
             </div>
-            <span class="badge ${s.score / s.total >= 0.7 ? "badge-passed" : "badge-failed"}">
-              ${s.score / s.total >= 0.7 ? t("passed") : t("failed")}
+            <span class="badge ${percentageBadgeClass}">
+              ${percentage >= 70 ? t("passed") : t("failed")}
             </span>
             <button class="button button-secondary button-small" data-detail="${s.id}" type="button">${t("viewAnswers")}</button>
           </div>
-        `).join("") : `<div class="empty-state"><h3>${t("noStudent")}</h3><p>${t("shareAssignment")}</p></div>`}
+        `;
+        }).join("") : `<div class="empty-state"><h3>${t("noStudent")}</h3><p>${t("shareAssignment")}</p></div>`}
       </div>
     </section>
   `;
